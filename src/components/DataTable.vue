@@ -26,7 +26,7 @@
     </b-col>
 
     <b-table
-      :items="items[0]"
+      :items="items"
       :fields="fields"
       :current-page="currentPage"
       :per-page="perPage"
@@ -37,6 +37,16 @@
       @filtered="onFiltered"
     >
     </b-table>
+
+    <b-pagination
+      v-model="currentPage"
+      :total-rows="totalRows"
+      :per-page="perPage"
+      :total-pages="totalPages"
+      align="center"
+      size="sm"
+      @input="fetchData"
+    ></b-pagination>
   </div>
 </template>
 
@@ -50,18 +60,19 @@ export default {
       fields: [
         {
           key: "country",
-          label: "Country",
+          label: "País",
           class: "text-start",
         },
         {
           key: "region",
-          label: "Region",
+          label: "Região",
           class: "text-center",
         },
       ],
       totalRows: 1,
       currentPage: 1,
       perPage: 10,
+      totalPages: 1,
       filter: null,
       filterOn: [],
       infoModal: {
@@ -84,7 +95,7 @@ export default {
     },
   },
   mounted() {
-    this.totalRows = this.items[0].length;
+    this.totalRows = this.items.length;
   },
   methods: {
     onFiltered(filteredItems) {
@@ -99,9 +110,10 @@ export default {
           limit: this.perPage,
         })
         .then((response) => {
-          const array = Object.values(response.data);
-          this.items = array.map(v => v.map(arr => arr[1]));
-          console.log(this.items);
+          const array = Object.values(response.data.paginatedData);
+          this.items = array.map((v) => v.map((arr) => arr)[1]);
+          this.totalRows = this.items.length;
+          this.totalPages = response.data.totalPages;
         })
         .catch((error) => {
           console.error("Error fetching data:", error);
